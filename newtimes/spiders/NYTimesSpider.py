@@ -15,9 +15,23 @@ def getUrls(main, selector_class):
     urls = fetch(main, "").find_all("div", {"class": selector_class})
     for url in urls:
         for a in url:
-             if a['href'][:1] == '/':
+             if a['href'][:1] == '/' and a['href'][:6] != '/video' :
+                if "https://www.nytimes.com" + a['href'] not in article_urls:
+                    pass
+                    article_urls.append("https://www.nytimes.com" + a['href'])
+    urls2 = fetch(main, "").find_all("h2", {"class": "css-qrzo5d e134j7ei0"})
+    for url in urls2:
+        for a in url:
+             if a['href'][:1] == '/' and a['href'][:6] != '/video' :
                 if "https://www.nytimes.com" + a['href'] not in article_urls:
                     article_urls.append("https://www.nytimes.com" + a['href'])
+    urls3 = fetch(main, "").find_all("h2", {"class": "css-byk1jx"})
+    for url in urls3:
+        for a in url:
+             if a['href'][:1] == '/' and a['href'][:6] != '/video' :
+                if "https://www.nytimes.com" + a['href'] not in article_urls:
+                    article_urls.append("https://www.nytimes.com" + a['href'])
+    return article_urls
     return article_urls
 
 
@@ -28,18 +42,19 @@ class NytimesspiderSpider(scrapy.Spider):
      # Get Politics Artcles 
     politics = getUrls('https://www.nytimes.com/section/politics', "css-1l4spti")
     # Get Business Artcles 
-    #business = getUrls('https://www.washingtonpost.com/business', "headline")
+    business = getUrls('https://www.nytimes.com/section/business', "css-1l4spti") 
      # Get Sports Articles
-    #sports = getUrls('https://www.washingtonpost.com/sports', "headline")
+    sports = getUrls('https://www.nytimes.com/section/sports', "css-1l4spti")
     # Arts and Culture Articles can both be found in the entertainment Segment
-    #arts_cul_cele = getUrls('https://www.washingtonpost.com/entertainment', "") 
+    arts_cul_cele = getUrls('https://www.nytimes.com/section/arts', "css-1l4spti") 
     
-    start_urls = [*politics]
+    start_urls = [*politics, *business, *sports, *arts_cul_cele]
+    print(start_urls)
 
     def parse(self, response):
         print("procesing:"+response.url)
         
-        title = response.css('#link-ef6af63::text').extract()
+        title = response.css('.css-rsa88z::text').extract()
         article = response.css('.css-1fanzo5 > div > p::text').getall()
         
         row_data=zip(title, str(article))
